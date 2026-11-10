@@ -30,9 +30,15 @@ def _month(dates: pd.Series) -> pd.Series:
 
 
 def build_org_month(incidents: pd.DataFrame, korgau: pd.DataFrame,
-                    organizations: pd.DataFrame) -> pd.DataFrame:
-    """Таблица «организация × месяц» с целевой переменной и лаговыми признаками."""
-    months = pd.date_range(_month(incidents["date"]).min(), _month(incidents["date"]).max(), freq="MS")
+                    organizations: pd.DataFrame, include_next: bool = False) -> pd.DataFrame:
+    """Таблица «организация × месяц» с целевой переменной и лаговыми признаками.
+
+    include_next=True добавляет следующий (ещё не наступивший) месяц: target у него
+    пустой, а признаки уже известны. Именно для него строится прогноз риска.
+    """
+    last = _month(incidents["date"]).max()
+    months = pd.date_range(_month(incidents["date"]).min(),
+                           last + pd.offsets.MonthBegin(1) if include_next else last, freq="MS")
     grid = pd.MultiIndex.from_product([organizations["org_id"], months], names=["org_id", "month"])
 
     inc = incidents.groupby(["org_id", _month(incidents["date"])]).size()
@@ -58,4 +64,6 @@ def build_org_month(incidents: pd.DataFrame, korgau: pd.DataFrame,
     df["is_contractor"] = df["org_id"].map(orgs["kind"].eq("Подрядчик")).astype(int)
     df["headcount"] = df["org_id"].map(orgs["headcount"])
     df["split"] = split_period(df["month"])
+    if include_next:
+        df.loc[df["month"] > last, ["incidents", "split"]] = [float("nan"), "future"]
     return df.dropna(subset=FEATURES).reset_index(drop=True)
