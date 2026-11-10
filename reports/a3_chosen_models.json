@@ -1,0 +1,20 @@
+{
+  "forecast": {
+    "model": "TrendSeasonModel",
+    "harmonics": 1,
+    "trend": true
+  },
+  "risk": {
+    "model": "PoissonRegressor",
+    "alpha": 1.0
+  },
+  "text": {
+    "model": "TF-IDF + LinearSVC",
+    "clf__C": 3,
+    "tfidf__min_df": 1,
+    "tfidf__ngram_range": [
+      1,
+      1
+    ]
+  }
+}
