@@ -46,14 +46,12 @@ def score_next_month(model: Pipeline, org_month_with_next: pd.DataFrame,
     nxt["expected_incidents"] = model.predict(nxt[FEATURES])
     if company_total is not None:
         nxt["expected_incidents"] *= company_total / nxt["expected_incidents"].sum()
-    # Вероятность хотя бы одного происшествия по закону Пуассона: 1 − e^(−λ)
-    nxt["p_at_least_one"] = 1 - np.exp(-nxt["expected_incidents"])
     nxt["per_100_workers"] = nxt["expected_incidents"] / nxt["headcount"] * 100
     nxt = nxt.merge(organizations[["org_id", "name", "kind"]], on="org_id")
     # Индекс риска 0–100: ожидаемое число относительно самой рискованной организации
     nxt["risk_index"] = (100 * nxt["expected_incidents"] / nxt["expected_incidents"].max()).round()
     nxt["risk_level"] = pd.cut(nxt["risk_index"], [-1, 33, 66, 100], labels=["Низкий", "Средний", "Высокий"])
-    cols = ["org_id", "name", "kind", "month", "expected_incidents", "p_at_least_one",
+    cols = ["org_id", "name", "kind", "month", "expected_incidents",
             "per_100_workers", "risk_index", "risk_level", "bad_share_lag1", "overdue_lag1"]
     return nxt[cols].sort_values("expected_incidents", ascending=False).reset_index(drop=True)
 
