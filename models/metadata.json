@@ -1,0 +1,80 @@
+{
+  "model_version": "1.0.0",
+  "trained_at": "2026-11-10T20:33:17+00:00",
+  "data": {
+    "period": [
+      "2023-09-01",
+      "2026-08-31"
+    ],
+    "incidents_rows": 1487,
+    "korgau_rows": 4310,
+    "sha256": {
+      "incident_types.csv": "8119b7cd006f0db6",
+      "incidents.csv": "8c0224df21e25587",
+      "korgau_cards.csv": "c81a37119ae2b41e",
+      "organizations.csv": "339cc6fea6a79a1b"
+    }
+  },
+  "models": {
+    "forecast": {
+      "file": "forecast.joblib",
+      "algorithm": "OLS: линейный тренд + сезонная гармоника",
+      "params": {
+        "harmonics": 1,
+        "trend": true
+      },
+      "metrics": {
+        "test_MAE": 4.777,
+        "test_RMSE": 5.172,
+        "backtest_MAE": 5.6
+      },
+      "input": "месячный ряд числа происшествий",
+      "output": "прогноз на 1–12 мес. + 90% интервал"
+    },
+    "risk": {
+      "file": "risk.joblib",
+      "algorithm": "StandardScaler + PoissonRegressor",
+      "params": {
+        "alpha": 1.0
+      },
+      "features": [
+        "inc_lag1",
+        "inc_mean3",
+        "bad_lag1",
+        "bad_share_lag1",
+        "overdue_lag1",
+        "is_contractor",
+        "headcount"
+      ],
+      "metrics": {
+        "test_MAE": 1.969,
+        "test_poisson_deviance": 1.963
+      },
+      "input": "лаговые признаки организации за прошлый месяц",
+      "output": "ожидаемое число происшествий в следующем месяце"
+    },
+    "text": {
+      "file": "text.joblib",
+      "algorithm": "TF-IDF + LinearSVC(class_weight=balanced)",
+      "params": {
+        "C": 3.0,
+        "ngram_max": 1,
+        "min_df": 1
+      },
+      "metrics": {
+        "test_accuracy": 0.9509,
+        "test_macro_f1": 0.9208
+      },
+      "input": "текст описания происшествия (рус.)",
+      "output": "тип: Опасная ситуация / Микротравма / Несчастный случай / Авария"
+    }
+  },
+  "evaluation": "метрики test: модель обучена на train+validation; сохранённая модель переобучена на всех данных",
+  "versions": {
+    "python": "3.13.18",
+    "pandas": "3.0.5",
+    "numpy": "2.5.3",
+    "scikit-learn": "1.9.1",
+    "statsmodels": "0.15.0"
+  }
+}
