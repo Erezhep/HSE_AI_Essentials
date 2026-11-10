@@ -9,6 +9,8 @@
 Сезонность описывается двумя параметрами вместо 11 (как у помесячных dummy или SARIMA),
 поэтому модель не переобучается на коротком ряду (36 точек).
 """
+import warnings
+
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
@@ -33,12 +35,16 @@ def mean_last_year(train: pd.Series, horizon: int) -> np.ndarray:
 
 
 def holt_winters(train: pd.Series, horizon: int) -> np.ndarray:
-    model = ExponentialSmoothing(train, trend="add", seasonal="add", seasonal_periods=12).fit()
+    with warnings.catch_warnings():          # предупреждения сходимости на коротком ряду
+        warnings.simplefilter("ignore")
+        model = ExponentialSmoothing(train, trend="add", seasonal="add", seasonal_periods=12).fit()
     return model.forecast(horizon).values
 
 
 def sarima(train: pd.Series, horizon: int) -> np.ndarray:
-    model = SARIMAX(train, order=(1, 1, 1), seasonal_order=(0, 1, 0, 12)).fit(disp=False)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        model = SARIMAX(train, order=(1, 1, 1), seasonal_order=(0, 1, 0, 12)).fit(disp=False)
     return model.forecast(horizon).values
 
 

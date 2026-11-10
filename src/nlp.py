@@ -4,7 +4,8 @@ NLP-классификация происшествий по тексту опи
 Одна задача: по тексту «молнии» определить тип: Опасная ситуация / Микротравма /
 Несчастный случай / Авария.
 
-Финальная модель: TF-IDF (слова и биграммы) + линейный SVM с балансировкой классов.
+Финальная модель: TF-IDF (отдельные слова) + линейный SVM с балансировкой классов.
+Гиперпараметры (C=3, униграммы, min_df=1) подобраны GridSearchCV в notebooks/03_model_training.ipynb.
 - TF-IDF превращает текст в вектор: слово получает большой вес, если часто встречается
   в этом описании и редко — в остальных.
 - Линейный SVM проводит между классами разделяющие гиперплоскости.
@@ -38,10 +39,10 @@ def split_texts(incidents: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd
     return train, val, test
 
 
-def make_text_model(C: float = 1.0, ngram_max: int = 2) -> Pipeline:
+def make_text_model(C: float = 3.0, ngram_max: int = 1, min_df: int = 1) -> Pipeline:
     return Pipeline([
         ("tfidf", TfidfVectorizer(preprocessor=normalize, ngram_range=(1, ngram_max),
-                                  min_df=2, sublinear_tf=True)),
+                                  min_df=min_df, sublinear_tf=True)),
         ("svm", LinearSVC(C=C, class_weight="balanced", random_state=RANDOM_STATE)),
     ])
 
