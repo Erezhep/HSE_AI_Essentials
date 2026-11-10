@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+.pytest_cache/
+logs/
+*.log
+.env
+# тяжёлые артефакты трансформеров (обучаются в Colab)
+models/transformer/

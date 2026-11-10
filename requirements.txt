@@ -1,0 +1,18 @@
+# Данные и модели
+pandas>=2.2
+numpy>=1.26
+scikit-learn>=1.5
+statsmodels>=0.14
+joblib>=1.4
+matplotlib>=3.8
+
+# Сервис
+fastapi>=0.110
+uvicorn>=0.29
+streamlit>=1.35
+requests>=2.31
+
+# Проверка и notebooks
+pytest>=8.0
+httpx>=0.27
+jupyter>=1.0
