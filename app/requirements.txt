@@ -1,0 +1,5 @@
+# Минимальные зависимости дашборда (Streamlit Community Cloud ищет этот файл рядом с dashboard.py)
+streamlit>=1.50
+altair>=5.0
+pandas>=2.2
+requests>=2.31

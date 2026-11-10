@@ -1,0 +1,5 @@
+# Для разработки: notebooks и тесты
+-r requirements.txt
+pytest>=8.0
+httpx>=0.27
+jupyter>=1.0

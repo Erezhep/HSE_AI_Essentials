@@ -1,0 +1,9 @@
+# Развёртывание API на Render.com (Blueprint): New → Blueprint → выбрать этот репозиторий
+services:
+  - type: web
+    name: hse-ai-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.api:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
