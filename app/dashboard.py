@@ -1,18 +1,17 @@
 """
 Дашборд HSE AI Analytics (уровень «представления» из архитектуры ТЗ, раздел 5).
 
-Одна задача: показать пользователю ответы API. Расчётов здесь нет: всё считает API.
-Запуск (API должен быть запущен):  streamlit run app/dashboard.py
-Адрес API задаётся переменной окружения HSE_API_URL (по умолчанию http://127.0.0.1:8000).
+Одна задача: показать пользователю результаты. Расчётов здесь нет: данные приходят
+из app/client.py — через FastAPI (если он запущен или задан HSE_API_URL) или напрямую
+из сервисного слоя (режим одного приложения для Streamlit Cloud).
+Запуск:  streamlit run app/dashboard.py
 """
-import os
-
 import altair as alt
 import pandas as pd
-import requests
 import streamlit as st
 
-API = os.environ.get("HSE_API_URL", "http://127.0.0.1:8000").rstrip("/")
+import client
+
 TYPE_COLORS = {"Опасная ситуация": "#2a78d6", "Микротравма": "#eb6834",
                "Несчастный случай": "#1baf7a", "Авария": "#eda100"}
 TYPE_SCALE = alt.Scale(domain=list(TYPE_COLORS), range=list(TYPE_COLORS.values()))
@@ -23,9 +22,7 @@ st.set_page_config(page_title="HSE AI Analytics", page_icon="🛡️", layout="w
 
 @st.cache_data(ttl=60, show_spinner=False)
 def get(path: str, **params) -> dict | list:
-    r = requests.get(f"{API}{path}", params={k: v for k, v in params.items() if v not in (None, "", "Все")}, timeout=30)
-    r.raise_for_status()
-    return r.json()
+    return client.get(path, **params)
 
 
 def fmt_kzt(x: float) -> str:
@@ -35,11 +32,15 @@ def fmt_kzt(x: float) -> str:
 # ------------------------------------------------------------------ шапка и проверка API
 st.title("🛡️ HSE AI Analytics")
 st.caption("AI-аналитика охраны труда: происшествия, Карты Коргау, прогноз, риски, алерты, экономический эффект")
+mode, api_url = client.backend()
 try:
-    health = get("/health")
+    with st.spinner("Подключение… (облачный API после простоя просыпается до 1 минуты)"):
+        health = get("/health")
 except Exception:
-    st.error(f"API недоступен по адресу {API}. Запустите: `uvicorn app.api:app` и обновите страницу.")
+    st.error(f"API недоступен по адресу {api_url}. Проверьте сервис и обновите страницу.")
     st.stop()
+st.caption(f"Источник данных: {'API ' + api_url if mode == 'api' else 'встроенный режим (сервис в процессе дашборда)'}"
+           f" · модель v{health['model_version']}")
 
 tabs = st.tabs(["📊 Обзор", "📈 Прогноз", "🎯 Зоны риска", "🔔 Алерты", "💡 Рекомендации",
                 "💰 Экономика", "🔎 Классификатор", "🛠 Мониторинг"])
@@ -177,11 +178,10 @@ with tabs[6]:
     text = st.text_area("Описание происшествия", height=120,
                         value="Оператор поскользнулся на обледенелой площадке, получил перелом лодыжки, доставлен в районную больницу.")
     if st.button("Определить тип", type="primary"):
-        resp = requests.post(f"{API}/classify", json={"text": text}, timeout=30)
-        if resp.status_code != 200:
-            st.error(resp.json().get("detail"))
+        ok, res = client.classify(text)
+        if not ok:
+            st.error(res)
         else:
-            res = resp.json()
             st.markdown(f"### {res['type']}")
             if res["low_confidence"]:
                 st.warning("Модель не уверена: два класса близки. Проверьте вручную.")
@@ -195,11 +195,15 @@ with tabs[6]:
 with tabs[7]:
     get.clear()
     m = get("/monitoring")
-    k1, k2, k3, k4 = st.columns(4)
-    k1.metric("Запросов", m["requests_total"])
-    k2.metric("Ошибок", sum(m["errors"].values()))
-    k3.metric("Задержка p50", f"{m['latency_ms']['p50']} мс")
-    k4.metric("Задержка p95", f"{m['latency_ms']['p95']} мс")
-    st.json(m, expanded=False)
+    if m is None:
+        st.info("Метрики запросов собирает FastAPI (app/monitoring.py). Во встроенном режиме API не используется — "
+                "запустите `uvicorn app.api:app`, чтобы увидеть мониторинг.")
+    else:
+        k1, k2, k3, k4 = st.columns(4)
+        k1.metric("Запросов", m["requests_total"])
+        k2.metric("Ошибок", sum(m["errors"].values()))
+        k3.metric("Задержка p50", f"{m['latency_ms']['p50']} мс")
+        k4.metric("Задержка p95", f"{m['latency_ms']['p95']} мс")
+        st.json(m, expanded=False)
     st.subheader("Паспорт модели")
     st.json(get("/model-info"), expanded=False)

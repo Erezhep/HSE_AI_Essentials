@@ -61,6 +61,7 @@ HSE_AI_Essentials/
 │   ├── service.py             модульдерді біріктіреді
 │   ├── api.py                 FastAPI
 │   ├── monitoring.py          мониторинг
+│   ├── client.py              дашборд деректерді қайдан алады: API немесе тікелей
 │   └── dashboard.py           Streamlit дашборды
 ├── models/                    сақталған модельдер + metadata.json
 ├── notebooks/                 01 EDA · 02 baseline · 03 оқыту · 04 трансформер/LoRA
@@ -84,11 +85,12 @@ pip install -r requirements-dev.txt
 python data_generation\generate_data.py
 python -m src.train
 
-# 1-терминал: API      → http://127.0.0.1:8000/docs
-uvicorn app.api:app --reload
-
-# 2-терминал: дашборд  → http://localhost:8501
+# Тек сайтты көру үшін бір команда жеткілікті → http://localhost:8501
 streamlit run app/dashboard.py
+
+# Толық режим: алдымен API (бөлек терминалда) → http://127.0.0.1:8000/docs,
+# дашборд оны өзі табады және деректерді API арқылы алады
+uvicorn app.api:app --reload
 
 # тесттер
 pytest
@@ -100,8 +102,10 @@ Notebooks: `jupyter notebook notebooks/` → **Restart & Run All**. Notebook 04 
 
 ## Интернетте deploy жасау
 
-- **API → Render.com:** New → Blueprint → репозиторийді таңдау (`render.yaml` дайын тұр). Тексеру үшін `https://<сіздің-адрес>/health` ашыңыз.
-- **Дашборд → Streamlit Community Cloud:** New app → `app/dashboard.py`. Secrets бөлімінде: `HSE_API_URL = "https://<API-адресі>"`.
+**Ең оңай жол: бір ғана Streamlit қосымшасы.** Дашборд API таппаса, сол сервис кодын (`app/service.py`) өз ішінде тікелей шақырады (`app/client.py`, «embedded» режимі). Сондықтан сайтқа бөлек сервер керек емес:
+share.streamlit.io → Create app → репозиторий, `main`, `app/dashboard.py` → Deploy.
+
+**Толық архитектура (міндетті емес):** API → Render.com (`render.yaml` дайын тұр), дашбордтың Secrets бөлімінде `HSE_API_URL = "https://<API-адресі>"`. Бұл жағдайда дашборд деректерді API арқылы алады.
 
 ## API
 

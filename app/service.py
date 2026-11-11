@@ -10,6 +10,12 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
+import sys
+
+ROOT = Path.cwd().parent  # если текущая папка — app
+sys.path.insert(0, str(ROOT))
+
+
 from src.alerts import compute_alerts
 from src.data import load_clean, load_reference
 from src.economics import economic_effect

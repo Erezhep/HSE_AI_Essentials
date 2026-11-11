@@ -1,0 +1,162 @@
+{
+  "model_name": "cointegrated/rubert-tiny2",
+  "device": "cpu",
+  "seed": 42,
+  "versions": {
+    "torch": "2.15.0+cpu",
+    "transformers": "5.22.2",
+    "peft": "0.21.2",
+    "sklearn": "1.9.1"
+  },
+  "results": {
+    "Transfer learning (frozen rubert-tiny2 + LogReg)": {
+      "val": {
+        "accuracy": 0.9283,
+        "macro_f1": 0.8909
+      },
+      "test": {
+        "accuracy": 0.9107,
+        "macro_f1": 0.8858
+      },
+      "trainable_params": 1252,
+      "train_time_sec": 41.2,
+      "params": {
+        "pooling": "mean",
+        "classifier": "LogisticRegression(C=10, class_weight=balanced)"
+      }
+    },
+    "Fine-tuning rubert-tiny2 (все веса)": {
+      "val": {
+        "accuracy": 0.9596,
+        "macro_f1": 0.9099
+      },
+      "test": {
+        "accuracy": 0.9598,
+        "macro_f1": 0.9599
+      },
+      "trainable_params": 29195020,
+      "total_params": 29195020,
+      "train_time_sec": 376.2,
+      "params": {
+        "learning_rate": 5e-05,
+        "batch_size": 16,
+        "epochs": 6,
+        "optimizer": "AdamW (weight_decay=0.01)",
+        "loss": "weighted CrossEntropy",
+        "scheduler": "linear warmup 10%",
+        "max_len": 128
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_loss": 1.3686,
+          "val_macro_f1": 0.2827
+        },
+        {
+          "epoch": 2,
+          "train_loss": 0.995,
+          "val_macro_f1": 0.6846
+        },
+        {
+          "epoch": 3,
+          "train_loss": 0.6396,
+          "val_macro_f1": 0.7083
+        },
+        {
+          "epoch": 4,
+          "train_loss": 0.4681,
+          "val_macro_f1": 0.9099
+        },
+        {
+          "epoch": 5,
+          "train_loss": 0.3932,
+          "val_macro_f1": 0.9099
+        },
+        {
+          "epoch": 6,
+          "train_loss": 0.3629,
+          "val_macro_f1": 0.9099
+        }
+      ]
+    },
+    "LoRA rubert-tiny2 (r=8, q/v)": {
+      "val": {
+        "accuracy": 0.9552,
+        "macro_f1": 0.9071
+      },
+      "test": {
+        "accuracy": 0.9554,
+        "macro_f1": 0.8758
+      },
+      "trainable_params": 31204,
+      "total_params": 29226224,
+      "train_time_sec": 513.6,
+      "params": {
+        "r": 8,
+        "lora_alpha": 16,
+        "lora_dropout": 0.1,
+        "target_modules": [
+          "query",
+          "value"
+        ],
+        "learning_rate": 0.0005,
+        "batch_size": 16,
+        "epochs": 10,
+        "optimizer": "AdamW (weight_decay=0.01)",
+        "loss": "weighted CrossEntropy"
+      },
+      "history": [
+        {
+          "epoch": 1,
+          "train_loss": 1.3788,
+          "val_macro_f1": 0.2645
+        },
+        {
+          "epoch": 2,
+          "train_loss": 1.177,
+          "val_macro_f1": 0.4259
+        },
+        {
+          "epoch": 3,
+          "train_loss": 0.8689,
+          "val_macro_f1": 0.4568
+        },
+        {
+          "epoch": 4,
+          "train_loss": 0.7387,
+          "val_macro_f1": 0.7055
+        },
+        {
+          "epoch": 5,
+          "train_loss": 0.6209,
+          "val_macro_f1": 0.6607
+        },
+        {
+          "epoch": 6,
+          "train_loss": 0.531,
+          "val_macro_f1": 0.7055
+        },
+        {
+          "epoch": 7,
+          "train_loss": 0.4435,
+          "val_macro_f1": 0.7083
+        },
+        {
+          "epoch": 8,
+          "train_loss": 0.3831,
+          "val_macro_f1": 0.8313
+        },
+        {
+          "epoch": 9,
+          "train_loss": 0.3762,
+          "val_macro_f1": 0.9071
+        },
+        {
+          "epoch": 10,
+          "train_loss": 0.3947,
+          "val_macro_f1": 0.9043
+        }
+      ]
+    }
+  }
+}

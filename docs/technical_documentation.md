@@ -55,6 +55,7 @@ flowchart LR
 | `app/service.py` | связка модулей для API |
 | `app/api.py` | REST API |
 | `app/monitoring.py` | метрики работы сервиса и предсказаний |
+| `app/client.py` | источник данных дашборда: API по HTTP или сервис напрямую |
 | `app/dashboard.py` | веб-интерфейс |
 | `models/` | сохранённые модели и `metadata.json` |
 | `notebooks/01–04` | этапы курса: EDA, baseline, обучение, трансформеры |
@@ -138,7 +139,8 @@ flowchart LR
 ## 9. Развёртывание
 
 - **Локально:** `uvicorn app.api:app` + `streamlit run app/dashboard.py`.
-- **В сети:** API — Render.com (`render.yaml`), дашборд — Streamlit Community Cloud. В secrets дашборда указывается `HSE_API_URL = "https://<адрес API>"`.
+- **В сети, одно приложение:** Streamlit Community Cloud (`app/dashboard.py`). Если API не задан, дашборд вызывает `app/service.py` в своём процессе: ответы те же, но без HTTP-слоя и мониторинга запросов.
+- **В сети, полная архитектура:** API — Render.com (`render.yaml`), дашборд — Streamlit Community Cloud с secret `HSE_API_URL = "https://<адрес API>"`.
 
 ## 10. Ограничения
 

@@ -4,6 +4,10 @@ services:
     name: hse-ai-api
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt
+    # Модели обучаются при сборке: версии scikit-learn на сервере и в модели всегда совпадают
+    buildCommand: pip install -r requirements.txt && python -m src.train
     startCommand: uvicorn app.api:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
