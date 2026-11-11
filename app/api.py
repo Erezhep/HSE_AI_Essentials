@@ -11,8 +11,8 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from monitoring import Monitor
-from service import HSEService
+from app.monitoring import Monitor
+from app.service import HSEService
 
 state: dict = {"service": None, "error": None}
 monitor = Monitor()
